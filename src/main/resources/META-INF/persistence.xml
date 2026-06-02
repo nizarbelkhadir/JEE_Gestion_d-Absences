@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence xmlns="http://xmlns.jcp.org/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence
+             http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd"
+             version="2.1">
+
+    <persistence-unit name="AbsencePU" transaction-type="RESOURCE_LOCAL">
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+
+        <!-- JPA Entities mapped class names (Optional in standard Java EE containers, but needed under Tomcat 8) -->
+        <class>com.gestionabsences.model.Etudiant</class>
+        <class>com.gestionabsences.model.Cours</class>
+        <class>com.gestionabsences.model.Seance</class>
+        <class>com.gestionabsences.model.Absence</class>
+        <class>com.gestionabsences.model.Professeur</class>
+
+        <properties>
+            <!-- Database Connection Settings -->
+            <property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver"/>
+            <property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost:5436/gestion_absences"/>
+            <property name="javax.persistence.jdbc.user" value="postgres"/>
+            <property name="javax.persistence.jdbc.password" value="postgres"/>
+
+            <!-- Hibernate Dialect for PostgreSQL -->
+            <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQL95Dialect"/>
+
+            <!-- Schema Generation (automatic table creation) -->
+            <property name="hibernate.hbm2ddl.auto" value="create"/>
+
+            <!-- SQL output options (highly useful for academic demonstration) -->
+            <property name="hibernate.show_sql" value="true"/>
+            <property name="hibernate.format_sql" value="true"/>
+            <property name="hibernate.use_sql_comments" value="true"/>
+
+            <!-- Connection Pooling settings (optional but good practice) -->
+            <property name="hibernate.connection.pool_size" value="10"/>
+        </properties>
+    </persistence-unit>
+</persistence>

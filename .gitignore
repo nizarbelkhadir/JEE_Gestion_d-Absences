@@ -1,0 +1,29 @@
+# Maven build output
+target/
+*.class
+
+# Eclipse / STS metadata
+.project
+.classpath
+.settings/
+
+# IntelliJ IDEA metadata
+.idea/
+*.iml
+
+# OS files
+Thumbs.db
+desktop.ini
+
+# LaTeX build outputs (keep PDF and tex, ignore logs/aux files)
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+
+# Local database/temporary files
+uploads/*
+!uploads/.gitkeep
