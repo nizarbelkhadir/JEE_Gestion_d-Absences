@@ -1,0 +1,139 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\geometry{top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{lmodern}
+
+% Configuration des couleurs
+\definecolor{primary}{HTML}{0D6EFD}
+\definecolor{secondary}{HTML}{495057}
+\definecolor{lightbg}{HTML}{F8F9FA}
+
+% Mise en page
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\textcolor{secondary}{Méthodologie Scrum}}
+\lhead{\textcolor{secondary}{EMSI 4IIR}}
+\cfoot{\thepage}
+
+\titleformat{\section}{\color{primary}\normalfont\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\color{secondary}\normalfont\large\bfseries}{\thesubsection}{1em}{}
+
+\title{
+    \vspace{2cm}
+    \textbf{\Huge Organisation Agile du Projet}\\[0.5cm]
+    \Large Plateforme de Gestion des Absences Multi-Rôles (JEE 8 / JPA)\\[1cm]
+    \large\textbf{Rapport Scrum \& Gestion de Projet}
+    \vspace{1cm}
+}
+\author{
+    \textbf{Réalisé par :}\\
+    Équipe de Projet — 4IIR\\[0.5cm]
+    \textbf{Encadrant :}\\
+    Pr. Houssam BAZZA
+}
+\date{Juin 2026}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+\newpage
+
+\section{Introduction et Rôles Scrum}
+Dans le cadre du développement de notre plateforme de gestion des absences, nous avons adopté la méthodologie agile \textbf{Scrum}. Ce cadre de travail nous a permis de structurer nos développements en cycles courts, de réagir rapidement aux contraintes techniques et de garantir un incrément logiciel de haute qualité.
+
+\subsection{Composition de l'Équipe Scrum}
+L'équipe est composée des rôles suivants :
+\begin{itemize}
+    \item \textbf{Product Owner (PO) :} Représente les besoins de l'administration scolaire et du corps enseignant (EMSI). Il est responsable de la spécification et de la priorisation des exigences (User Stories).
+    \item \textbf{Scrum Master (SM) :} \textbf{Nizar Belkhadir} — Assure la bonne application des pratiques Scrum, anime les rituels agiles, résout les blocages techniques (Git, Docker, etc.) et maintient la vélocité de l'équipe.
+    \item \textbf{Équipe de Développement (Development Team) :} \textbf{Nizar, Adam B., Adam A., Chafiq}. Équipe pluridisciplinaire responsable de la conception UML, du développement des composants front-end (JSP, CSS), back-end (Servlets, DAOs) et du déploiement.
+\end{itemize}
+
+\newpage
+\section{Planification des Sprints}
+Le projet a été développé sur une durée globale de trois semaines, découpée en trois Sprints successifs d'une semaine chacun.
+
+\subsection{Sprint 1 : Conception, Persistance et Charte Graphique}
+\begin{itemize}
+    \item \textbf{Objectif :} Établir le modèle relationnel et poser les fondations de l'application.
+    \item \textbf{Fonctionnalités et Tâches :}
+    \begin{itemize}
+        \item Analyse du besoin et conception des diagrammes UML (Cas d'utilisation, Classes, Séquence).
+        \item Initialisation du projet Maven et configuration du gestionnaire de versions Git.
+        \item Déploiement de la base de données PostgreSQL 15 sous conteneur Docker.
+        \item Écriture des entités JPA persistantes (\texttt{Etudiant}, \texttt{Absence}, \texttt{Seance}, etc.).
+        \item Développement de l'infrastructure de persistance sécurisée (\texttt{JPAUtil} et \texttt{ThreadLocal}).
+        \item Création du Design System global en CSS (style Glassmorphism moderne).
+    \end{itemize}
+    \item \textbf{Incrément logiciel :} Schéma de base de données auto-généré et architecture de persistance opérationnelle.
+\end{itemize}
+
+\subsection{Sprint 2 : Cœur Applicatif et Sécurité des Accès}
+\begin{itemize}
+    \item \textbf{Objectif :} Implémenter l'authentification et les fonctionnalités principales d'appel et de consultation.
+    \item \textbf{Fonctionnalités et Tâches :}
+    \begin{itemize}
+        \item Développement de la Servlet unique de routage (\texttt{AbsenceServlet}) appliquant le patron Front Controller.
+        \item Gestion des sessions utilisateurs (\texttt{HttpSession}) et protection des URLs par rôle.
+        \item Implémentation du module Enseignant : sélection de séance et feuille d'appel interactive avec enregistrement groupé.
+        \item Implémentation du module Administrateur : registre des absences et CRUD manuel.
+        \item Développement du moteur d'exportation de données au format CSV avec injection du BOM UTF-8.
+    \end{itemize}
+    \item \textbf{Incrément logiciel :} Application fonctionnelle permettant aux enseignants d'enregistrer les absences et aux administrateurs de les exporter.
+\end{itemize}
+
+\subsection{Sprint 3 : Workflows de Modération et Polissage}
+\begin{itemize}
+    \item \textbf{Objectif :} Finaliser les flux utilisateurs secondaires et réaliser la recette fonctionnelle.
+    \item \textbf{Fonctionnalités et Tâches :}
+    \begin{itemize}
+        \item Implémentation du module Étudiant : statistiques d'assiduité et tableau de bord personnel.
+        \item Workflow de justification : téléversement de fichiers binaires justificatifs (\texttt{MultipartConfig}) et modération administrative.
+        \item Workflow de réclamation : soumission de contestations par l'étudiant et arbitrage administratif.
+        \item Persistance locale de connexion avec cookies sécurisés « Remember Me ».
+        \item Écriture du script de filtrage réactif Vanilla JS sur le client.
+        \item Tests d'intégration et rédaction finale du rapport technique sous LaTeX.
+    \end{itemize}
+    \item \textbf{Incrément logiciel :} Produit fini stable, documenté et prêt pour la soutenance orale.
+\end{itemize}
+
+\newpage
+\section{Rituels Scrum et Artefacts}
+Afin de fluidifier les échanges et d'assurer une amélioration continue, l'équipe a tenu rigoureusement les cérémonies Scrum suivantes :
+
+\subsection{Cérémonies Agile}
+\begin{itemize}
+    \item \textbf{Sprint Planning :} Réunion hebdomadaire d'une heure visant à définir l'objectif du sprint et à sélectionner les tâches du Product Backlog à accomplir.
+    \item \textbf{Daily Stand-up :} Point quotidien de 15 minutes durant lequel chaque membre détaille ses actions de la veille, ses objectifs du jour et ses éventuels blocages.
+    \item \textbf{Sprint Review :} Démo de fin de sprint devant le Product Owner pour valider la conformité de l'incrément développé.
+    \item \textbf{Sprint Retrospective :} Réunion de fin de sprint pour identifier les points positifs et les axes d'amélioration méthodologique ou technique.
+\end{itemize}
+
+\subsection{Backlog de Produit et Exemples de User Stories}
+\begin{table}[htbp]
+    \centering
+    \caption{Exemples clés de User Stories du Backlog}
+    \vspace{0.3cm}
+    \begin{tabular}{lp{6cm}p{5cm}}
+        \toprule
+        \textbf{Rôle} & \textbf{User Story} & \textbf{Objectif Métier} \\
+        \midrule
+        Professeur & En tant qu'enseignant, je veux faire l'appel sur une grille interactive & Enregistrer les absences rapidement. \\
+        Étudiant & En tant qu'étudiant, je veux téléverser un certificat médical PDF & Justifier mes absences auprès de l'administration. \\
+        Administrateur & En tant qu'administrateur, je veux exporter les absences en CSV & Analyser et éditer les données sous Microsoft Excel. \\
+        Étudiant & En tant qu'étudiant, je veux contester une absence indue & Permettre sa suppression par l'administrateur. \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\end{document}

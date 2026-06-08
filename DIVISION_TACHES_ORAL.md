@@ -1,210 +1,208 @@
-# 📋 Guide de Répartition des Rôles & Soutenance Orale V4
+# 📋 Guide de Répartition des Rôles & Soutenance Orale V8
 ### EMSI — École Marocaine des Sciences de l'Ingénieur
 **Module :** JEE & Génie Logiciel  
 **Encadrant :** Pr. Houssam BAZZA  
 
-Ce document fournit la structure finale pour votre présentation de projet. La première partie détaille les configurations globales de la plateforme (infrastructure commune). La seconde partie découpe les fonctionnalités du système en 4 verticalités métiers équilibrées, affectées individuellement à chaque membre du groupe avec son script de soutenance.
+Ce guide récapitule les responsabilités de chaque membre du groupe, son diagramme UML associé, et le code du design pattern ou des tests qu'il doit présenter et maîtriser pour répondre aux questions du professeur Bazza.
 
 ---
 
-# 🌐 Partie 1 : Configurations Globales & Infrastructure Commune
-*Ces composants transversaux représentent le socle technique du projet et ne sont affectés à aucun membre en particulier.*
+# 🌐 Partie 1 : Configurations Globales (Socle Commun)
+*Ces éléments constituent l'infrastructure globale de l'application et sont considérés comme communs au groupe.*
+* **Docker Compose (`docker-compose.yml`) :** PostgreSQL 15 sur le port `5436`.
+* **Configuration JPA (`persistence.xml`) :** Dialecte Hibernate, connexion JDBC et auto-update.
+* **JPA Lifecycle (`JPAInitializer.java`) :** Initialisation globale de l'EntityManagerFactory au démarrage de Tomcat.
 
-### A. Conteneurisation & Base de Données (PostgreSQL & Docker Compose)
-* **Fichier :** `docker-compose.yml`
-* **Rôle :** Isolation et portabilité du SGBD PostgreSQL 15 sur le port physique `5436`.
-* **Concept clé :** Respect des principes du génie logiciel en éliminant les contraintes d'installation locale sur la machine du jury.
-
-### B. Configuration JPA (`persistence.xml`)
-* **Fichier :** `src/main/resources/META-INF/persistence.xml`
-* **Rôle :** Déclaration de l'unité de persistance (`AbsencePU`), chargement du driver PostgreSQL JDBC, et configuration de la génération de schéma automatique (`hibernate.hbm2ddl.auto = update`).
-
-### C. Gestion du Cycle de Vie JPA (`ServletContextListener`)
-* **Fichier :** `JPAInitializer.java`
-* **Rôle :** Instanciation unique de l'interface lourde `EntityManagerFactory` au démarrage du serveur Tomcat et fermeture propre lors de l'arrêt de l'application.
-
-### D. Isolation des Threads & ThreadLocal (`JPAUtil.java`)
-* **Fichier :** `JPAUtil.java`
-* **Rôle :** L'objet `EntityManager` n'étant pas thread-safe, la classe utilitaire l'associe à chaque thread de requête HTTP via une structure `ThreadLocal` pour interdire tout accès concurrent.
+### ⏱️ Organisation Agile globale (Scrum)
+* **Ce qu'on a fait :** Planification en 3 Sprints hebdomadaires, tenue de rituels agiles quotidiens (Daily Stand-up) et hebdo (Planning, Review, Retrospective), gestion du Backlog de User Stories.
+* **Discours Global face au Professeur Bazza :**
+  > *« Pour piloter ce projet JEE dans un délai de 3 semaines, nous avons adopté la méthodologie agile Scrum. Nous avons découpé le développement en 3 sprints d'une semaine. Le Product Owner a défini notre Backlog de User Stories. Nous avons mené nos Daily Stand-ups quotidiens pour synchroniser nos avancées et résoudre les blocages techniques, ainsi que des revues à chaque fin de sprint pour valider les incréments logiciels livrés. »*
+* **Questions / Réponses agiles potentielles :**
+  * **Q : Quel était le rôle du Scrum Master dans votre équipe ?**
+    * *R : « Le Scrum Master (Nizar) s'est assuré du respect des rituels agiles, de la répartition fonctionnelle équitable des tâches et de la fluidité des fusions sur le dépôt Git. »*
+  * **Q : Pourquoi avoir planifié des sprints d'une semaine ?**
+    * *R : « Compte tenu du délai court de 3 semaines pour rendre le projet, un rythme de sprints hebdomadaires était indispensable pour livrer rapidement des modules testables et s'ajuster rapidement. »*
 
 ---
 
-# 👤 Partie 2 : Répartition des Rôles Fonctionnels par Membre
+# 👤 Partie 2 : Fiches de Répartition Individuelles (UML, Code & Patterns)
 
-## 🛡️ Membre 1 : Espace Administrateur, Gestion Manuelle des Absences & Moteur d'Exportation CSV
+## 🛡️ Membre 1 : Espace Administrateur, Exportations, Diagramme des Cas d'Utilisation & Pattern MVC
 
-### 1. Fonctionnalités prises en charge
-* **Session Login Admin :** Gestion de la session d'authentification pour le profil administrateur unique.
-* **Registre Global des Absences :** Visualisation globale et centralisée de toutes les absences des étudiants.
-* **Création et Suppression Manuelle :** Ajout direct d'une absence pour un étudiant/séance ou suppression d'un enregistrement d'absence erroné.
-* **Exportation des Absences en CSV :** Écriture du flux de données CSV directement dans le canal HTTP, avec injection du code BOM UTF-8.
+### 1. Responsabilités (Fonctionnalités)
+* Session Login Admin, gestion manuelle des absences (CRUD), et moteur d'exportation CSV.
+* **Diagramme UML associé :** Diagramme de Cas d'Utilisation.
 
-### 2. Code clé à maîtriser
+### 2. Design Pattern & Code à présenter : Modèle-Vue-Contrôleur (MVC)
+*Le membre montre comment le projet sépare le modèle JPA (Entities), la vue JSP et le contrôleur Servlet.*
 ```java
-// processLogin - Extrait de AbsenceServlet.java
-if ("admin@univ.fr".equals(email) && "admin".equals(password)) {
-    HttpSession session = request.getSession(true);
-    session.setAttribute("userRole", "ADMIN");
-    response.sendRedirect(request.getContextPath() + "/absences?action=list");
-    return;
+// A. Le Modèle (Model) : Entité persistante (Absence.java)
+@Entity
+@Table(name = "absences")
+public class Absence {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @ManyToOne
+    private Etudiant etudiant;
 }
 
-// Exportation CSV avec Injection BOM UTF-8
-response.setContentType("text/csv; charset=UTF-8");
-response.setHeader("Content-Disposition", "attachment; filename=\"absences.csv\"");
-PrintWriter writer = response.getWriter();
-writer.write('\ufeff'); // BOM UTF-8 pour forcer Excel a lire correctement les accents
-writer.println("CNE,Nom Complet,Cours,Date,Statut");
-for (Absence a : absences) {
-    writer.println(a.getEtudiant().getCne() + "," + a.getEtudiant().getNomComplet() + "," +
-                   a.getSeance().getCours().getNomCours() + "," + a.getFormattedDateSaisie() + "," +
-                   a.getStatusJustification());
+// B. Le Contrôleur (Controller) : Reçoit la requête et charge les données (AbsenceServlet.java)
+public class AbsenceServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) {
+        List<Absence> absences = absenceDAO.findAll();
+        request.setAttribute("absences", absences);
+        request.getRequestDispatcher("/WEB-INF/views/admin-dashboard.jsp").forward(request, response);
+    }
 }
 ```
-
-### 3. Fiche Soutenance (Questions/Réponses & Discours)
-* **Q : Pourquoi le format CSV brut s'ouvre-t-il mal dans Excel sans le caractère BOM `\ufeff` ?**
-  * **R :** *« Par défaut, Excel tente de lire les fichiers textuels CSV locaux en codage ANSI/Windows-1252. Cela déforme les accents français comme les 'é' ou 'à'. En transmettant le caractère d'ordre des octets (BOM UTF-8) en préambule du fichier, nous forçons Excel à interpréter la suite en UTF-8, garantissant la lisibilité immédiate des noms. »*
-* **Discours à tenir :**
-  > *« Monsieur Bazza, je me suis occupé de l'espace Administrateur. J'ai configuré la session de connexion réservée à l'administration et développé les fonctionnalités de création et de suppression manuelle des fiches d'absences. Enfin, j'ai mis au point le moteur d'exportation de données au format CSV en écrivant directement dans le flux d'octets de sortie HTTP de la servlet, en résolvant le problème de déformation des caractères accentués sous Microsoft Excel par injection de la signature d'octets BOM UTF-8. »*
-
----
-
-## 📂 Membre 2 : Espace Étudiant, Téléversement de Justificatifs & Approbation Admin
-
-### 1. Fonctionnalités prises en charge
-* **Espace Tableau de bord Étudiant :** Affichage des compteurs statistiques d'absences (justifiées vs non justifiées) et tableau récapitulatif.
-* **Soumission de Justificatif :** Téléversement binaire via requête HTTP `MultipartConfig` de certificats médicaux, avec algorithme d'unicité temporelle.
-* **Persistance "Se Souvenir de Moi" (Cookies) :** Sauvegarde persistante des identifiants côté client grâce aux cookies HTTP.
-* **Validation de Justification :** Portail d'approbation ou de rejet des pièces justificatives côté Administrateur.
-
-### 2. Code clé à maîtriser
-```java
-// Téléversement sécurisé binaire - AbsenceServlet.java
-Part filePart = request.getPart("pieceJustificative");
-if (filePart != null && filePart.getSize() > 0) {
-    String fileName = filePart.getSubmittedFileName();
-    String uniqueName = System.currentTimeMillis() + "_" + fileName; // Eviter les collisions
-    String uploadPath = request.getServletContext().getRealPath("") + File.separator + "uploads";
-    
-    File uploadDir = new File(uploadPath);
-    if (!uploadDir.exists()) uploadDir.mkdir();
-    
-    filePart.write(uploadPath + File.separator + uniqueName);
-    abs.setDemandeJustifFilePath("uploads/" + uniqueName);
-    abs.setStatusJustification("PENDING");
-}
-
-// rememberMe - Ecriture du cookie persistant
-Cookie c = new Cookie("rememberedAdmin", email);
-c.setMaxAge(60 * 60 * 24 * 7); // Expire dans 7 jours
-c.setPath(request.getContextPath());
-response.addCookie(c);
-```
-
-### 3. Fiche Soutenance (Questions/Réponses & Discours)
-* **Q : Comment garantissez-vous que le fichier importé par l'étudiant n'écrase pas une autre pièce jointe ?**
-  * **R :** *« Nous utilisons un algorithme de renommage dynamique basé sur l'horodatage système `System.currentTimeMillis()`. Même si deux étudiants téléversent un fichier nommé de la même façon (par exemple 'justif.pdf'), le timestamp système en millisecondes préfixé au nom garantit l'unicité du nom de fichier sur le disque dur du serveur. »*
-* **Discours à tenir :**
-  > *« Monsieur Bazza, j'ai implémenté le module de téléversement de justificatifs médicaux pour l'espace Étudiant. En m'appuyant sur l'annotation standard `@MultipartConfig` de la Servlet, j'ai codé la réception binaire des pièces justificatives, leur sauvegarde sécurisée sur le disque dur du serveur Tomcat sous des noms uniques temporels, et l'intégration du workflow d'approbation/rejet côté Administrateur. J'ai aussi implémenté le confort de connexion via la création et le rappel automatique de Cookies persistants stockés sur le navigateur client. »*
-
----
-
-## 📝 Membre 3 : Espace Enseignant & Feuille d'Appel Dynamique Interactive
-
-### 1. Fonctionnalités prises en charge
-* **Session Login Professeur :** Identification et contrôle d'accès pour les enseignants.
-* **Sélection Dynamique de Séance :** Récupération dynamique en base de données de la liste des cours et des séances associés au professeur connecté.
-* **Feuille d'Appel en Grille :** Génération interactive de la liste des étudiants sous forme de grille contenant des cases à cocher.
-* **Enregistrement en Masse (Bulk Persist) :** Traitement unifié en base de données des étudiants marqués absents pour la séance sélectionnée.
-
-### 2. Code clé à maîtriser
 ```jsp
-<!-- prof-dashboard.jsp - Generation dynamique de l'appel -->
-<form action="${pageContext.request.contextPath}/absences?action=profSubmitAbsences" method="POST">
-    <select name="seanceId" required>
-        <c:forEach var="s" items="${seances}">
-            <option value="${s.id}">${s.label} (${s.cours.nomCours})</option>
-        </c:forEach>
-    </select>
-    <c:forEach var="st" items="${etudiants}">
-        <div class="student-item">
-            <span>${st.nomComplet}</span>
-            <input type="checkbox" name="absentStudents" value="${st.id}">
-        </div>
-    </c:forEach>
-</form>
-```
-```java
-// AbsenceServlet.java - Traitement Bulk Persist
-String[] absentIds = request.getParameterValues("absentStudents");
-Long seanceId = Long.parseLong(request.getParameter("seanceId"));
-Seance seance = seanceDAO.findById(seanceId);
-
-if (absentIds != null) {
-    for (String idStr : absentIds) {
-        Long etudiantId = Long.parseLong(idStr);
-        Etudiant etudiant = etudiantDAO.findById(etudiantId);
-        Absence abs = new Absence(etudiant, seance, LocalDateTime.now());
-        absenceDAO.save(abs); // Insertion en base
-    }
-}
+<!-- C. La Vue (View) : Affiche les données de manière isolée (admin-dashboard.jsp) -->
+<c:forEach var="abs" items="${absences}">
+    <tr><td>${abs.etudiant.nomComplet}</td></tr>
+</c:forEach>
 ```
 
-### 3. Fiche Soutenance (Questions/Réponses & Discours)
-* **Q : Comment récupérez-vous l'ensemble des checkbox cochées par le professeur dans votre servlet ?**
-  * **R :** *« En HTML, lorsque plusieurs checkbox partagent le même attribut `name` (ici 'absentStudents'), le serveur reçoit un tableau d'identifiants. Nous le récupérons dans la servlet via la méthode `request.getParameterValues("absentStudents")`. Nous bouclons ensuite sur ces identifiants pour enregistrer les absences en base de données de manière groupée. »*
-* **Discours à tenir :**
-  > *« Monsieur Bazza, j'ai développé l'espace Enseignant de l'application. Je me suis concentré sur la feuille d'appel interactive qui permet au professeur de sélectionner une séance puis de marquer les absents. Grâce aux balises JSTL, la liste des étudiants inscrits est générée de façon dynamique. J'ai codé la réception du tableau d'identifiants côté contrôleur pour exécuter une persistance groupée (Bulk Persist) au moyen de transactions JPA sécurisées. »*
+### 3. Questions / Réponses Typiques du Jury
+* **Q : Comment est articulée la séparation MVC dans ce projet ?**
+  * **R :** *« Les entités JPA représentent le Modèle, les pages JSP sous WEB-INF représentent la Vue (sans logique métier), et AbsenceServlet est le Contrôleur unique qui orchestre l'accès aux données et sélectionne la vue appropriée. »*
+
+### 4. Discours face au Professeur Bazza
+> *« Monsieur Bazza, j'ai développé l'espace d'administration et d'export CSV. J'ai modélisé le Diagramme de Cas d'Utilisation UML. Côté architecture logicielle, j'ai implémenté le patron MVC en séparant notre modèle persistant JPA (Entities), de nos pages dynamiques de rendu JSP (Vue) et de notre servlet unique (Contrôleur). »*
 
 ---
 
-## 💬 Membre 4 : Réclamations Étudiants, Arbitrage Admin & Recherche Temps Réel (Client JS)
+## 📂 Membre 2 : Espace Étudiant, Justificatifs, Cookies, Diagramme de Classes, DAO & Singleton
 
-### 1. Fonctionnalités prises en charge
-* **Dépôt de Réclamation :** Formulaire permettant à l'étudiant de contester une absence marquée par erreur en motivant sa requête.
-* **Portail d'Arbitrage Administrateur :** Espace permettant à l'administrateur de traiter les réclamations des étudiants.
-* **Suppression Transactionnelle :** En cas d'arbitrage positif, suppression automatique de l'absence contestée via l'EntityTransaction JPA.
-* **Moteur de Recherche Client (Vanilla JS) :** Algorithme de filtrage dynamique instantané sans rechargement de page.
+### 1. Responsabilités (Fonctionnalités)
+* Espace Étudiant, téléversement de justificatifs (Multipart Upload), cookies "Remember Me", et validation admin.
+* **Diagramme UML associé :** Diagramme de Classes JPA.
 
-### 2. Code clé à maîtriser
-```javascript
-// Filtrage dynamique instantane côté client (Vanilla JS)
-function filterAbsences() {
-    var query = document.getElementById("searchInput").value.toLowerCase();
-    var filter = document.getElementById("statusFilter").value;
-    var rows = document.querySelectorAll("table tbody tr");
-
-    rows.forEach(function(row) {
-        var nom = row.cells[1].textContent.toLowerCase();
-        var cours = row.cells[2].textContent.toLowerCase();
-        var status = row.cells[4].textContent.toLowerCase();
-
-        var matchesQuery = nom.indexOf(query) > -1 || cours.indexOf(query) > -1;
-        var matchesStatus = filter === "ALL" || 
-            (filter === "JUSTIF" && status.indexOf("justifi") > -1) ||
-            (filter === "NONJUSTIF" && status.indexOf("non justifi") > -1);
-
-        row.style.display = (matchesQuery && matchesStatus) ? "" : "none";
-    });
-}
-```
+### 2. Design Patterns & Code à présenter : DAO & Singleton
+*Le membre montre l'isolation des requêtes JPA (DAO) et l'instance unique de l'EntityManagerFactory (Singleton).*
 ```java
-// resolveReclamation - AbsenceServlet.java
-String decision = request.getParameter("decision");
-Absence abs = absenceDAO.findById(id);
-if (abs != null) {
-    if ("accept".equals(decision)) {
-        absenceDAO.delete(abs.getId()); // C'est une suppression physique
-    } else {
-        abs.setStatusReclamation("REJECTED");
-        absenceDAO.save(abs);
+// A. Le Pattern DAO : Encapsule les requêtes JPQL (AbsenceDAO.java)
+public class AbsenceDAO {
+    public void save(Absence absence) {
+        EntityManager em = JPAUtil.getEntityManager();
+        em.getTransaction().begin();
+        em.merge(absence);
+        em.getTransaction().commit();
+    }
+    public Absence findById(Long id) {
+        return JPAUtil.getEntityManager().find(Absence.class, id);
+    }
+}
+
+// B. Le Pattern Singleton : Instance unique de l'EntityManagerFactory (JPAUtil.java)
+public class JPAUtil {
+    private static EntityManagerFactory emf; // Instance unique (Singleton)
+
+    public static synchronized void setEntityManagerFactory(EntityManagerFactory factory) {
+        emf = factory;
     }
 }
 ```
 
-### 3. Fiche Soutenance (Questions/Réponses & Discours)
-* **Q : Pourquoi supprimer physiquement l'absence en base de données lorsque la réclamation est acceptée ?**
-  * **R :** *« Le marquage d'une absence par l'enseignant est parfois une erreur. Si l'étudiant prouve sa présence et que l'administrateur valide la réclamation, l'absence est considérée comme nulle. Supprimer physiquement la ligne de la table `absences` via `em.remove()` permet de corriger le registre et de remettre instantanément à zéro le compteur de l'étudiant. »*
-* **Discours à tenir :**
-  > *« Monsieur Bazza, j'ai développé le module de réclamation des étudiants et d'arbitrage de l'administration. J'ai implémenté le formulaire de contestation et la logique transactionnelle JPA qui supprime physiquement l'absence de la base de données PostgreSQL lorsque la réclamation de l'étudiant est approuvée par l'administrateur. Enfin, pour fluidifier l'expérience utilisateur, j'ai écrit un moteur de recherche et de filtrage instantané en pur JavaScript côté client, ce qui évite de recharger la page et d'épuiser inutilement les connexions au serveur. »*
+### 3. Questions / Réponses Typiques du Jury
+* **Q : Quel est l'intérêt du pattern DAO dans notre couche de persistance ?**
+  * **R :** *« Le DAO évite de polluer le contrôleur avec des sessions de persistance Hibernate ou des requêtes JPQL. Il isole les accès à la base de données. Si on change de SGBD ou d'ORM, on change uniquement les DAOs, le contrôleur ne bouge pas. »*
+
+### 4. Discours face au Professeur Bazza
+> *« Monsieur Bazza, j'ai programmé l'espace étudiant, l'upload de justificatifs médicaux et la gestion des cookies. J'ai conçu le Diagramme de Classes UML. Sur le plan des design patterns, j'ai implémenté le pattern DAO pour encapsuler nos requêtes JPA et le pattern Singleton pour gérer l'instance unique d'EntityManagerFactory via JPAUtil. »*
+
+---
+
+## 📝 Membre 3 : Espace Enseignant, Feuille d'Appel, Tests Unitaires JUnit, Diagramme de Séquence & Front Controller
+
+### 1. Responsabilités (Fonctionnalités)
+* Espace Professeur, feuille d'appel dynamique, enregistrement en masse (Bulk Persist).
+* **Validation & Robustesse (Tests) :** Écriture et exécution de la suite de tests unitaires automatiques JUnit.
+* **Diagramme UML associé :** Diagramme de Séquence.
+
+### 2. Design Pattern & Code à présenter : Front Controller & Tests JUnit
+*Le membre montre le routage centralisé de la Servlet et un exemple de classe de test unitaire.*
+```java
+// A. Front Controller Routing & Security Gate (AbsenceServlet.java)
+public class AbsenceServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String action = request.getParameter("action");
+        if (action == null) action = "list";
+
+        // Security Gating : Redirection automatique si pas de session active
+        HttpSession session = request.getSession(false);
+        if (session == null && !"login".equals(action)) {
+            response.sendRedirect(request.getContextPath() + "/absences?action=login");
+            return;
+        }
+
+        // Aiguillage centralisé des requêtes
+        switch (action) {
+            case "profDashboard":   showProfDashboard(request, response); break;
+            case "adminRequests":   showAdminRequests(request, response); break;
+            default:                listAbsences(request, response); break;
+        }
+    }
+}
+
+// B. Test Unitaire de Validation (EtudiantTest.java)
+public class EtudiantTest {
+    @Test
+    public void testGetNomComplet() {
+        Etudiant etudiant = new Etudiant("CNE999", "belkhadir", "nizar", "nizar@univ.fr");
+        // Valide que getNomComplet() met bien le nom en majuscules
+        assertEquals("BELKHADIR nizar", etudiant.getNomComplet());
+    }
+}
+```
+
+### 3. Questions / Réponses Typiques du Jury
+* **Q : Quel est l'intérêt d'avoir implémenté un Front Controller dans notre servlet ?**
+  * **R :** *« Le Front Controller évite d'avoir une servlet par URL de l'application. Une servlet unique intercepte toutes les requêtes sous `/absences`, ce qui nous permet de centraliser la sécurité des sessions en un seul endroit. »*
+* **Q : Qu'est-ce que JUnit et à quoi servent les tests unitaires créés ?**
+  * **R :** *« JUnit est notre framework de test. Nous avons écrit des tests unitaires automatiques dans le dossier src/test/java pour valider de manière isolée le comportement logique de nos objets (comme le formatage de date de Seance ou la capitalisation de nom de Etudiant) pour prémunir notre code contre toute régression. »*
+
+### 4. Discours face au Professeur Bazza
+> *« Monsieur Bazza, j'ai développé le dashboard enseignant et la feuille d'appel interactive en grille. J'ai réalisé le Diagramme de Séquence UML. Côté architecture logicielle, j'ai mis en œuvre le pattern Front Controller en centralisant l'accès à l'application dans AbsenceServlet pour sécuriser et aiguiller nos requêtes. J'ai également configuré et écrit la suite de tests unitaires automatisés sous JUnit pour valider nos modèles et assurer la pérennité du code. »*
+
+---
+
+## 💬 Membre 4 : Réclamations Étudiant, Modération Admin, Filtre Client JS & ThreadLocal
+
+### 1. Responsabilités (Fonctionnalités)
+* Gestion des réclamations étudiants, modération avec suppression physique en base, et filtrage dynamique en JavaScript.
+* **Fichier associé :** Rapport Technique LaTeX (`RAPPORT_PROJET.tex` / `.pdf`).
+
+### 2. Design Pattern & Code à présenter : ThreadLocal (Isolation des requêtes)
+*Le membre explique comment JPAUtil garantit la sécurité des threads (Thread-safety) sur Tomcat en liant un EntityManager à chaque requête.*
+```java
+// A. ThreadLocal Context (JPAUtil.java)
+public class JPAUtil {
+    private static EntityManagerFactory emf;
+    // Conteneur d'EntityManager isolé par Thread
+    private static final ThreadLocal<EntityManager> threadLocalEntityManager = new ThreadLocal<>();
+
+    public static EntityManager getEntityManager() {
+        EntityManager em = threadLocalEntityManager.get();
+        if (em == null || !em.isOpen()) {
+            em = emf.createEntityManager();
+            threadLocalEntityManager.set(em); // Associe l'EntityManager au Thread en cours
+        }
+        return em;
+    }
+
+    public static void closeEntityManager() {
+        EntityManager em = threadLocalEntityManager.get();
+        if (em != null && em.isOpen()) {
+            em.close();
+        }
+        threadLocalEntityManager.remove(); // Nettoie le ThreadLocal
+    }
+}
+```
+
+### 3. Questions / Réponses Typiques du Jury
+* **Q : Pourquoi utiliser un ThreadLocal pour l'EntityManager de JPA ?**
+  * **R :** *« L'EntityManager de JPA n'est pas thread-safe. Dans un serveur d'application comme Tomcat, chaque client exécute ses requêtes sur un Thread distinct. Pour éviter qu'un utilisateur n'accède ou ne corrompe les données d'un autre dans une transaction concurrente, le ThreadLocal isole l'EntityManager de chaque client dans le Thread en cours de traitement. »*
+
+### 4. Discours face au Professeur Bazza
+> *« Monsieur Bazza, j'ai codé la gestion des réclamations étudiants, la suppression transactionnelle physique en base et le filtrage réactif Vanilla JS. J'ai aussi structuré notre rapport technique sous LaTeX. Côté architecture, j'ai programmé le pattern ThreadLocal pour assurer l'isolation de nos transactions et la thread-safety des EntityManagers. »*

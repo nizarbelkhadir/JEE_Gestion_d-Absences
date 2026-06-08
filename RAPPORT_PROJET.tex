@@ -143,7 +143,58 @@ Afin d'acquérir une compréhension profonde des mécanismes internes des archit
 \end{itemize}
 
 % ==========================================
-% SECTION 2
+% SECTION 2 : METHODOLOGIE SCRUM
+% ==========================================
+\section{Méthodologie de Gestion de Projet (Scrum)}
+Dans le cadre de la planification et de l'exécution de notre plateforme, nous avons adopté la méthodologie agile \textbf{Scrum}. Ce cadre de travail nous a permis de structurer nos développements en cycles cours, de réagir rapidement aux contraintes techniques et de garantir un incrément logiciel de haute qualité.
+
+\subsection{Composition de l'Équipe Scrum}
+L'équipe est composée des rôles agiles suivants :
+\begin{itemize}
+    \item \textbf{Product Owner (PO) :} Représente les besoins de l'administration scolaire et du corps enseignant (EMSI). Il est responsable de la spécification et de la priorisation des exigences (User Stories).
+    \item \textbf{Scrum Master (SM) :} \textbf{Nizar Belkhadir} — Assure la bonne application des pratiques Scrum, anime les rituels agiles, résout les blocages techniques (Git, Docker, etc.) et maintient la vélocité de l'équipe.
+    \item \textbf{Équipe de Développement (Development Team) :} \textbf{Nizar, Adam B., Adam A., Chafiq}. Équipe pluridisciplinaire responsable de la conception UML, du développement des composants front-end (JSP, CSS), back-end (Servlets, DAOs) et du déploiement.
+\end{itemize}
+
+\subsection{Découpage et Objectifs des Sprints}
+Le projet a été développé sur une durée globale de trois semaines, découpée en trois Sprints successifs d'une semaine chacun :
+\begin{enumerate}
+    \item \textbf{Sprint 1 : Conception, Persistance et Charte Graphique} \\
+    Ce premier sprint a permis d'analyser le besoin et de concevoir les diagrammes UML (Cas d'utilisation, Classes, Séquence). Nous avons initialisé le projet Maven, configuré la base de données PostgreSQL 15 sous Docker et mappé les entités JPA persistantes (\texttt{Etudiant}, \texttt{Absence}, etc.). Nous avons également mis en place l'architecture de persistance isolée (\texttt{JPAUtil} et \texttt{ThreadLocal}) et créé la charte graphique moderne en CSS.
+    \item \textbf{Sprint 2 : Cœur Applicatif et Sécurité des Accès} \\
+    L'objectif de ce sprint était d'implémenter le moteur de traitement. Nous avons écrit la Servlet unique de routage (\texttt{AbsenceServlet}) appliquant le patron Front Controller, géré les sessions utilisateurs (\texttt{HttpSession}), et conçu la feuille d'appel interactive avec enregistrement groupé pour les professeurs, ainsi que le registre global d'administration et l'export CSV.
+    \item \textbf{Sprint 3 : Workflows de Modération, Tests et Polissage} \\
+    Durant le dernier sprint, nous avons développé le dashboard étudiant et ses statistiques d'assiduité, les workflows d'upload de justificatifs médicaux, et les réclamations. Nous avons configuré la mémorisation de connexion par Cookies « Remember Me » et le filtrage client en Vanilla JS. Ce sprint s'est achevé par la mise en place de la suite de tests unitaires sous \textbf{JUnit 4} et la rédaction finale du rapport technique.
+\end{enumerate}
+
+\subsection{Rituels et Cérémonies Scrum}
+Pour maintenir la synchronisation de l'équipe, nous avons tenu rigoureusement les cérémonies agiles suivantes :
+\begin{itemize}
+    \item \textbf{Sprint Planning :} Réunion hebdomadaire pour définir l'objectif du sprint et sélectionner les tâches du Backlog de produit.
+    \item \textbf{Daily Stand-up :} Point quotidien de 15 minutes durant lequel chaque membre détaille ses actions de la veille, ses objectifs du jour et ses éventuels blocages.
+    \item \textbf{Sprint Review :} Démo de fin de sprint devant le Product Owner pour valider la conformité de l'incrément développé.
+    \item \textbf{Sprint Retrospective :} Réunion de fin de sprint pour identifier les points positifs et les axes d'amélioration.
+\end{itemize}
+
+\subsection{User Stories clés du Backlog}
+\begin{table}[htbp]
+    \centering
+    \caption{Exemples clés de User Stories du Backlog de produit}
+    \vspace{0.3cm}
+    \begin{tabular}{lp{6cm}p{5cm}}
+        \hline
+        \textbf{Rôle} & \textbf{User Story} & \textbf{Objectif Métier} \\
+        \hline
+        Professeur & En tant qu'enseignant, je veux faire l'appel sur une grille interactive & Enregistrer les absences rapidement. \\
+        Étudiant & En tant qu'étudiant, je veux téléverser un certificat médical PDF & Justifier mes absences auprès de l'administration. \\
+        Administrateur & En tant qu'administrateur, je veux exporter les absences en CSV & Analyser et éditer les données sous Microsoft Excel. \\
+        Étudiant & En tant qu'étudiant, je veux contester une absence indue & Permettre sa suppression par l'administrateur. \\
+        \hline
+    \end{tabular}
+\end{table}
+
+% ==========================================
+% SECTION 3
 % ==========================================
 \section{Cahier des Charges et Spécifications Fonctionnelles}
 
@@ -183,39 +234,64 @@ Pour assurer la modération sans supprimer les données arbitrairement, nous avo
     \item \textbf{Flux de Réclamation :} L'étudiant déclare sa présence indue. L'absence passe au statut de réclamation \texttt{PENDING}. L'administrateur valide : s'il accepte la réclamation, l'absence est supprimée de la base de données. S'il la rejette, le statut devient \texttt{REJECTED} et l'absence est maintenue.
 \end{itemize}
 
-% ==========================================
-% SECTION 3
-% ==========================================
 \section{Partie Conception (Modélisation UML)}
 
 \subsection{Diagramme de Cas d'Utilisation (Use Case Diagram)}
-\vspace{1.5cm}
+Le diagramme de cas d'utilisation synthétise les limites fonctionnelles du système et définit les rôles d'accès de chaque acteur (Étudiant, Professeur, Administrateur). Il permet d'illustrer visuellement les cas d'utilisation clés tels que la saisie d'absence, le dépôt de justificatif, et l'arbitrage des réclamations.
+
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.9\textwidth]{use_case.png}
+    \includegraphics[width=0.8\textwidth]{use_case.png}
     \caption{Diagramme de Cas d'Utilisation - Plateforme de Gestion des Absences}
     \label{fig:use_case}
 \end{figure}
-\vspace{1.5cm}
 
 \subsection{Diagramme de Classes (Class Diagram)}
-\vspace{1.5cm}
+Le diagramme de classes représente le modèle conceptuel de données de notre domaine d'application. Chaque classe est directement mappée en entité JPA. Les relations modélisent l'association d'un étudiant à ses absences, d'une absence à une séance de cours spécifique, et d'un cours à un enseignant responsable.
+
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.9\textwidth]{class_diagram.png}
+    \includegraphics[width=0.8\textwidth]{class_diagram.png}
     \caption{Diagramme de Classes JPA - Modèle du Domaine}
     \label{fig:class_diagram}
 \end{figure}
-\vspace{1.5cm}
 
 \subsection{Diagramme de Séquence (Sequence Diagram)}
-\vspace{1.5cm}
+Le diagramme de séquence retrace les interactions temporelles entre les composants du système (Client JSP, Contrôleur Servlet, DAOs et Base de données PostgreSQL) lors d'un scénario type de soumission et de validation d'un justificatif d'absence.
+
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.9\textwidth]{sequence_diagram.png}
+    \includegraphics[width=0.8\textwidth]{sequence_diagram.png}
     \caption{Diagramme de Séquence - Traitement des Demandes et Persistance}
     \label{fig:sequence_diagram}
 \end{figure}
+
+% ==========================================
+% SECTION 4
+% ==========================================
+\section{Patrons de Conception (Design Patterns) Appliqués}
+Afin de concevoir une application modulaire, extensible et conforme aux bonnes pratiques du Génie Logiciel, plusieurs patrons de conception (\textit{Design Patterns}) ont été implémentés au sein de l'architecture de la plateforme.
+
+\subsection{Modèle-Vue-Contrôleur (MVC)}
+Le patron de conception architectural central est le \textbf{MVC}. Il sépare l'application en trois composants indépendants :
+\begin{itemize}
+    \item \textbf{Le Modèle (Model) :} Représenté par les entités JPA (\texttt{Etudiant}, \texttt{Absence}, \texttt{Professeur}, \texttt{Seance}, \texttt{Cours}) et la couche de persistance. Il gère l'état et l'accès aux données de manière isolée.
+    \item \textbf{La Vue (View) :} Représentée par les pages JSP sous \texttt{WEB-INF/views/}. Elles s'occupent uniquement du rendu graphique de l'interface et du dynamisme d'affichage via JSTL et EL, sans contenir de logique métier.
+    \item \textbf{Le Contrôleur (Controller) :} Représenté par la servlet \texttt{AbsenceServlet} qui intercepte les requêtes HTTP, sollicite le modèle et sélectionne la vue appropriée.
+\end{itemize}
+
+\subsection{Front Controller (Contrôleur Frontal)}
+Plutôt que d'associer un servlet distinct à chaque URL (ce qui alourdirait la maintenance et fragmenterait la gestion de la sécurité), la plateforme implémente le pattern \textbf{Front Controller}. Une servlet unique (\texttt{AbsenceServlet}) intercepte toutes les requêtes mappées sous \texttt{/absences}. Elle réalise les vérifications de session transversales (Session Gating) et de rôles, puis aiguille le traitement vers la méthode dédiée en fonction du paramètre \texttt{action} passé en paramètre d'URL.
+
+\subsection{Data Access Object (DAO)}
+Le pattern \textbf{DAO} isole complètement la logique d'accès à la base de données relationnelle du reste de l'application. La servlet contrôleur n'effectue jamais de requêtes JPQL en direct. Elle délègue ces opérations à des classes spécialisées (\texttt{AbsenceDAO}, \texttt{EtudiantDAO}, etc.). Cela permet de découpler le modèle physique de stockage de la logique applicative.
+
+\subsection{Singleton (Unique Instance)}
+La fabrique d'EntityManager (\texttt{EntityManagerFactory}) est une ressource lourde à initialiser. Nous appliquons le principe du \textbf{Singleton} encapsulé dans la classe \texttt{JPAUtil}. L'EntityManagerFactory est instancié une seule fois lors du démarrage du conteneur Tomcat par le listener \texttt{JPAInitializer} et partagé sous forme d'instance unique tout au long du cycle de vie de l'application.
+
+\subsection{ThreadLocal Context (Isolation par Thread)}
+Puisque l'\texttt{EntityManager} standard de JPA n'est pas thread-safe, son partage direct entre requêtes HTTP concurrentes corromprait la session de persistance. Nous utilisons le pattern \textbf{ThreadLocal} dans \texttt{JPAUtil} pour lier chaque instance d'EntityManager au thread courant exécutant la requête HTTP. Chaque appelant dispose ainsi d'un gestionnaire de persistance isolé et sécurisé, détruit en fin de cycle de requête.
+
 \newpage
 
 % ==========================================
@@ -599,24 +675,98 @@ Les dépendances Maven intègrent les APIs de Servlets, JSPs, JSTL, Hibernate Co
 % SECTION 13
 % ==========================================
 \section{Scénarios d'Exécution et Recette de Tests}
+Cette section présente la validation fonctionnelle de la plateforme à travers les différents cas d'utilisation réels et les captures d'écran associées.
 
-\subsection{Test 1 : Authentification par rôle}
+\subsection{Test 1 : Authentification multi-rôle}
+L'accès à l'application est sécurisé par un portail d'authentification unique aiguillant les utilisateurs selon leur rôle en base de données.
 \begin{itemize}
-    \item \textbf{Action :} Connexion avec \texttt{admin@univ.fr} / \texttt{admin}.
-    \item \textbf{Résultat attendu :} Connexion réussie, accès au tableau de bord général de l'administration.
+    \item \textbf{Action :} Saisie des identifiants (administrateur, professeur ou étudiant) dans le formulaire de connexion.
+    \item \textbf{Résultat attendu :} Redirection vers le dashboard correspondant.
+\end{itemize}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.85\textwidth]{uploads/test_login.jpg}
+    \caption{Interface de Connexion Multi-Rôles}
+    \label{fig:test_login}
+\end{figure}
+
+\subsection{Test 2 : Mémorisation de session par Cookies}
+Pour améliorer l'expérience utilisateur, l'option « Se souvenir de moi » stocke un cookie sécurisé sur le client.
+\begin{itemize}
+    \item \textbf{Action :} Activation de la case « Se souvenir de moi » lors du login et vérification de la persistance après fermeture du navigateur.
+    \item \textbf{Résultat attendu :} Création du cookie correspondant et reconnexion automatique.
+\end{itemize}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.85\textwidth]{uploads/test_cookie.jpg}
+    \caption{Persistance d'authentification par Cookie HTTP}
+    \label{fig:test_cookie}
+\end{figure}
+
+\subsection{Test 3 : Saisie d'appel interactif par le Professeur}
+L'enseignant peut sélectionner sa séance active et réaliser l'appel rapidement.
+\begin{itemize}
+    \item \textbf{Action :} Sélection de la séance dans la liste déroulante, cochage des étudiants absents, et soumission.
+    \item \textbf{Résultat attendu :} Création en base de données des entrées d'absences correspondantes.
+\end{itemize}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.85\textwidth]{uploads/test_prof_appel_absence.jpg}
+    \caption{Feuille d'Appel Interactive de l'Enseignant}
+    \label{fig:test_prof_appel}
+\end{figure}
+
+\subsection{Test 4 : Tableau de bord Étudiant et suivi personnel}
+L'étudiant accède en temps réel à l'état de son assiduité et peut lancer le workflow de justification ou de réclamation.
+\begin{itemize}
+    \item \textbf{Action :} Consultation de la page d'accueil étudiante.
+    \item \textbf{Résultat attendu :} Affichage précis du nombre total d'absences et des détails de chaque séance.
+\end{itemize}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.85\textwidth]{uploads/test_student_dashboard.jpg}
+    \caption{Tableau de Bord Étudiant et Statut des Absences}
+    \label{fig:test_student_db}
+\end{figure}
+
+\subsection{Test 5 : Modération administrative des justificatifs et réclamations}
+L'administrateur arbitre et statue sur les demandes de régularisation déposées.
+\begin{itemize}
+    \item \textbf{Action :} Examen des justificatifs médicaux téléversés et clic sur « Accepter » ou « Refuser ».
+    \item \textbf{Résultat attendu :} Mise à jour automatique du statut de l'absence en base de données.
+\end{itemize}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.85\textwidth]{uploads/test_admin_dmd_justification.jpg}
+    \caption{Portail d'Arbitrage et de Modération Admin}
+    \label{fig:test_admin_requests}
+\end{figure}
+
+\subsection{Tests Unitaires Automatisés (JUnit)}
+Pour garantir la robustesse de l'application et éviter toute régression lors des phases de refactoring, nous avons intégré des tests unitaires automatisés basés sur le framework \textbf{JUnit 4}. Ces tests permettent de valider le comportement logique de nos modèles et utilitaires en isolation complète.
+
+Trois classes de test ont été implémentées dans le répertoire \texttt{src/test/java} :
+\begin{itemize}
+    \item \textbf{\texttt{EtudiantTest} :} Vérifie le bon fonctionnement du constructeur, des accesseurs (Getters/Setters) et la méthode utilitaire \texttt{getNomComplet()} qui convertit automatiquement le nom de famille en majuscules.
+    \item \textbf{\texttt{SeanceTest} :} Valide le formatage personnalisé de la date (\texttt{dd/MM/yyyy}) et la génération dynamique du libellé de séance combinant le nom du cours, la date et les horaires.
+    \item \textbf{\texttt{JPAUtilTest} :} Teste la sécurité d'accès de la classe utilitaire de persistance en vérifiant que toute demande d'accès à l'EntityManager lève une exception \texttt{IllegalStateException} si la fabrique globale n'a pas encore été initialisée par le listener de démarrage.
 \end{itemize}
 
-\subsection{Test 2 : Appel interactif professeur}
-\begin{itemize}
-    \item \textbf{Action :} Connexion avec le compte enseignant. Clic sur une séance, cochage d'un étudiant comme absent, soumission.
-    \item \textbf{Résultat attendu :} Les absences correspondantes sont générées automatiquement en base de données.
-\end{itemize}
+\begin{lstlisting}[language=Java, caption={Extrait des tests unitaires de validation du modèle Etudiant}]
+package com.gestionabsences;
 
-\subsection{Test 3 : Dépôt de justificatif et validation}
-\begin{itemize}
-    \item \textbf{Action :} Connexion étudiante, sélection d'une absence, dépôt de motif et fichier. Connexion admin, examen de la demande dans le portail de modération, clic sur "Accepter".
-    \item \textbf{Résultat attendu :} Le statut de l'absence passe à Justifiée dans le registre global.
-\end{itemize}
+import com.gestionabsences.model.Etudiant;
+import org.junit.Test;
+import static org.junit.Assert.*;
+
+public class EtudiantTest {
+    @Test
+    public void testGetNomComplet() {
+        Etudiant etudiant = new Etudiant("CNE999", "belkhadir", "nizar", "nizar@univ.fr");
+        assertEquals("BELKHADIR nizar", etudiant.getNomComplet());
+    }
+}
+\end{lstlisting}
 
 % ==========================================
 % SECTION 14
