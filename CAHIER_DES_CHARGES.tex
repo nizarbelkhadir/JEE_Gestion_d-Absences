@@ -1,0 +1,166 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\geometry{top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{lmodern}
+
+% Configuration des couleurs (Thème Moderne)
+\definecolor{primary}{HTML}{3B82F6}      % Bleu Moderne
+\definecolor{secondary}{HTML}{1E293B}    % Gris-Bleu ardoise
+\definecolor{accent}{HTML}{8B5CF6}       % Violet Électrique
+\definecolor{lightbg}{HTML}{F8F9FA}      % Gris très clair
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=accent,
+    filecolor=magenta,      
+    urlcolor=primary,
+    pdftitle={Cahier des Charges - Plateforme Multi-Rôles de Gestion des Absences},
+}
+
+% Mise en page
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\textcolor{secondary}{\small Cahier des Charges}}
+\lhead{\textcolor{secondary}{\small EMSI 4IIR — JEE}}
+\cfoot{\thepage}
+
+\titleformat{\section}{\color{accent}\normalfont\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\color{primary}\normalfont\large\bfseries}{\thesubsection}{1em}{}
+
+\title{
+    \vspace{2cm}
+    \textbf{\Huge CAHIER DES CHARGES}\\[0.5cm]
+    \Large Plateforme de Gestion des Absences Multi-Rôles (JEE 8 / JPA)\\[1.5cm]
+    \large\textbf{Spécifications Fonctionnelles, Architecturales \& Techniques}
+    \vspace{1cm}
+}
+\author{
+    \textbf{Réalisé par :}\\
+    Chafiq Mwiyeh, Adam Asaas, Nizar Belkhadir, Adam Bibilou \\[0.5cm]
+    \textbf{Encadrant :}\\
+    Pr. Houssam BAZZA
+}
+\date{Juin 2026}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+\newpage
+
+\tableofcontents
+\newpage
+
+\section{Présentation Générale et Contexte}
+
+\subsection{Contexte du Projet}
+Dans le cadre de l'enseignement supérieur au sein de l'École Marocaine des Sciences de l'Ingénieur (EMSI), le suivi rigoureux de l'assiduité est un indicateur de performance clé et un moyen de lutte contre l'échec universitaire. 
+
+L'absence de système automatisé réactif entraîne des pertes de temps considérables pour les enseignants (appel sur papier), des surcharges de traitement pour l'administration (recopie manuelle, classement physique des justificatifs) et un manque de transparence pour les étudiants.
+
+\subsection{Objectifs de l'Application}
+La plateforme à concevoir a pour objectif de centraliser, numériser et sécuriser l'ensemble du processus de gestion des absences à l'aide d'une application web multi-rôles. Elle doit :
+\begin{itemize}
+    \item Permettre aux enseignants d'enregistrer l'appel en classe en quelques secondes.
+    \item Offrir aux étudiants une visibilité immédiate sur leurs absences et leur permettre de déposer des justificatifs en ligne.
+    \item Fournir à l'administration un tableau de modération pour arbitrer les réclamations/justifications et exporter les données pour Excel.
+\end{itemize}
+
+\subsection{Acteurs du Système}
+L'application cible trois types d'utilisateurs distincts :
+\begin{enumerate}
+    \item \textbf{L'Administrateur Scolaire} : Gère le registre global, valide/rejette les pièces justificatives et les contestations.
+    \item \textbf{Le Professeur} : Responsable de la saisie de l'appel pour les séances de ses cours attitrés.
+    \item \textbf{L'Étudiant} : Consulte son dossier d'absences, téléverse ses certificats médicaux ou conteste les erreurs d'appel.
+\end{enumerate}
+
+---
+
+\section{Besoins Fonctionnels}
+
+\subsection{Gestion de l'Authentification et Session}
+\begin{itemize}
+    \item \textbf{Authentification unique} : Un portail de connexion unique aiguillant l'utilisateur vers son espace de travail (Admin, Prof ou Étudiant) selon son rôle en base de données.
+    \item **Persistance de session** : Utilisation d'un cookie sécurisé \textit{« Remember Me »} pour retenir l'identifiant de l'utilisateur d'une session à l'autre.
+    \item \textbf{Sécurité des routes} : Interdiction stricte d'accéder aux URLs internes par manipulation de l'historique ou saisie directe (Session Gating).
+\end{itemize}
+
+\subsection{Espace Administrateur}
+L'administrateur doit disposer des fonctionnalités suivantes :
+\begin{itemize}
+    \item \textbf{Registre global} : Consultation de toutes les absences triées par date, étudiant et matière.
+    \item \textbf{Modération des demandes} : Une interface centralisée pour visualiser les motifs de justifications (avec PDF associé) ou les réclamations des étudiants.
+    \item \textbf{Arbitrage} : Boutons d'action rapides pour valider (justifier ou supprimer l'absence) ou refuser (l'absence reste injustifiée).
+    \item \textbf{Exportation de données} : Moteur de génération de fichiers CSV (avec injection du BOM UTF-8) pour éviter les erreurs d'accents sous Microsoft Excel.
+\end{itemize}
+
+\subsection{Espace Professeur}
+Le professeur doit disposer des fonctionnalités suivantes :
+\begin{itemize}
+    \item \textbf{Sélection de Séance} : Visualisation des cours associés et sélection de la séance d'enseignement en cours.
+    \item \textbf{Feuille d'appel interactive} : Liste des étudiants inscrits au cours avec cases à cocher. Cocher un étudiant le déclare absent ; décocher un étudiant annule l'absence.
+    \item \textbf{Enregistrement groupé (Bulk Persist)} : Validation de la feuille d'appel en une seule transaction pour optimiser les performances.
+\end{itemize}
+
+\subsection{Espace Étudiant}
+L'étudiant doit disposer des fonctionnalités suivantes :
+\begin{itemize}
+    \item \textbf{Tableau de bord personnel} : Visualisation sous forme de statistiques du nombre total d'absences, absences justifiées et injustifiées.
+    \item \textbf{Téléversement de justificatifs} : Formulaire permettant de sélectionner une absence injustifiée, d'écrire un motif et d'uploader un fichier justificatif (PDF ou image).
+    \item \textbf{Réclamation} : Option de contester une absence si l'étudiant a été marqué absent par erreur, avec passage de l'absence au statut \texttt{PENDING} de réclamation.
+\end{itemize}
+
+---
+
+\section{Besoins Techniques et Architecture}
+
+\subsection{Contraintes de Développement (JEE Natif)}
+Pour des exigences académiques de maîtrise d'architecture, l'utilisation de frameworks d'auto-configuration de type Spring Boot est interdite. L'application doit s'appuyer sur :
+\begin{itemize}
+    \item **Java EE 8 pur** (Servlets, JSP, JSTL, Expression Language).
+    \item **Patron architectural MVC** (séparation stricte du Modèle JPA, de la Vue JSP et de la Servlet Contrôleur).
+    \item **Front Controller** : Une servlet unique pour orchestrer les requêtes HTTP, valider les sessions et aiguiller le traitement.
+\end{itemize}
+
+\subsection{Couche de Persistance (JPA \& Hibernate)}
+\begin{itemize}
+    \item **ORM** : Utilisation de JPA 2.1 avec l'implémentation d'Hibernate.
+    \item **Pattern DAO** : Toutes les requêtes JPQL (Java Persistence Query Language) doivent être encapsulées dans des classes DAO distinctes.
+    \item **Thread Safety** : Utilisation de la classe \texttt{ThreadLocal} dans \texttt{JPAUtil} pour garantir qu'un EntityManager est lié de façon hermétique à un seul Thread HTTP Tomcat concurrent.
+    \item **Singleton** : Instanciation unique de l'\texttt{EntityManagerFactory} lors du démarrage du conteneur.
+\end{itemize}
+
+\subsection{Base de Données et Déploiement}
+\begin{itemize}
+    \item **SGBD** : PostgreSQL 15.
+    \item **Docker** : La base de données doit être conteneurisée sous Docker via un fichier \texttt{docker-compose.yml} avec volume persistant.
+    \item **Conteneur Web** : Apache Tomcat 9.
+\end{itemize}
+
+---
+
+\section{Contraintes Non Fonctionnelles}
+
+\subsection{Sécurité}
+\begin{itemize}
+    \item Isolation stricte des espaces : un étudiant ne doit en aucun cas pouvoir lire ou écrire dans l'espace administrateur ou enseignant.
+    \item Protection contre les injections SQL grâce aux requêtes JPQL typées et paramétrées.
+\end{itemize}
+
+\subsection{Ergonomie et Performance}
+\begin{itemize}
+    \item **Charte graphique** : Interface moderne reposant sur un design \textit{Glassmorphism} (effet de transparence dépolie) en Vanilla CSS.
+    \item **Réactivité client** : Script JavaScript côté client pour le filtrage en temps réel dans les tableaux sans rechargement de page.
+    \item **Robustesse** : Présence d'une suite de tests unitaires automatisés sous **JUnit 4** pour valider la conformité des modèles métiers.
+\end{itemize}
+
+\end{document}
